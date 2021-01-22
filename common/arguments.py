@@ -21,7 +21,8 @@ def get_common_args():
     parser.add_argument('--alg', type=str, default='iql', help='the algorithm to train the agent')
     parser.add_argument('--n_steps', type=int, default=2000000, help='total time steps')
     parser.add_argument('--n_episodes', type=int, default=1, help='the number of episodes before once training')
-    parser.add_argument('--last_action', type=bool, default=True, help='whether to use the last action to choose action')
+    parser.add_argument('--last_action', type=bool, default=True,
+                        help='whether to use the last action to choose action')
     parser.add_argument('--reuse_network', type=bool, default=True, help='whether to use one network for all agents')
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor')
     parser.add_argument('--optimizer', type=str, default="RMS", help='optimizer')
@@ -175,4 +176,3 @@ def get_g2anet_args(args):
     args.attention_dim = 32
     args.hard = True
     return args
-

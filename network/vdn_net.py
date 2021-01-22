@@ -8,4 +8,3 @@ class VDNNet(nn.Module):
 
     def forward(self, q_values):
         return torch.sum(q_values, dim=2, keepdim=True)
-

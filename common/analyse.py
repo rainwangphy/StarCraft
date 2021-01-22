@@ -36,7 +36,6 @@ def plt_win_rate_mean():
     new_win_rates[:, 0] = 0
     win_rates = new_win_rates
 
-
     plt.figure()
     plt.ylim(0, 1.0)
     plt.plot(range(len(win_rates[0])), win_rates[0], c='b', label='vdn')

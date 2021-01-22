@@ -43,7 +43,8 @@ class G2ANet(nn.Module):
         # Hard Attention，GRU和GRUCell不同，输入的维度是(序列长度,batch_size, dim)
         if self.args.hard:
             # Hard Attention前的准备
-            h = h_out.reshape(-1, self.args.n_agents, self.args.rnn_hidden_dim)  # 把h转化出n_agents维度，(batch_size, n_agents, rnn_hidden_dim)
+            h = h_out.reshape(-1, self.args.n_agents,
+                              self.args.rnn_hidden_dim)  # 把h转化出n_agents维度，(batch_size, n_agents, rnn_hidden_dim)
             input_hard = []
             for i in range(self.args.n_agents):
                 h_i = h[:, i]  # (batch_size, rnn_hidden_dim)
@@ -64,7 +65,8 @@ class G2ANet(nn.Module):
                 h_hard = h_hard.cuda()
             h_hard, _ = self.hard_bi_GRU(input_hard, h_hard)  # (n_agents - 1,batch_size * n_agents,rnn_hidden_dim * 2)
             h_hard = h_hard.permute(1, 0, 2)  # (batch_size * n_agents, n_agents - 1, rnn_hidden_dim * 2)
-            h_hard = h_hard.reshape(-1, self.args.rnn_hidden_dim * 2)  # (batch_size * n_agents * (n_agents - 1), rnn_hidden_dim * 2)
+            h_hard = h_hard.reshape(-1,
+                                    self.args.rnn_hidden_dim * 2)  # (batch_size * n_agents * (n_agents - 1), rnn_hidden_dim * 2)
 
             # 得到hard权重, (n_agents, batch_size, 1,  n_agents - 1)，多出一个维度，下面加权求和的时候要用
             hard_weights = self.hard_encoding(h_hard)
@@ -79,9 +81,12 @@ class G2ANet(nn.Module):
                 hard_weights = hard_weights.cuda()
 
         # Soft Attention
-        q = self.q(h_out).reshape(-1, self.args.n_agents, self.args.attention_dim)  # (batch_size, n_agents, args.attention_dim)
-        k = self.k(h_out).reshape(-1, self.args.n_agents, self.args.attention_dim)  # (batch_size, n_agents, args.attention_dim)
-        v = f.relu(self.v(h_out)).reshape(-1, self.args.n_agents, self.args.attention_dim)  # (batch_size, n_agents, args.attention_dim)
+        q = self.q(h_out).reshape(-1, self.args.n_agents,
+                                  self.args.attention_dim)  # (batch_size, n_agents, args.attention_dim)
+        k = self.k(h_out).reshape(-1, self.args.n_agents,
+                                  self.args.attention_dim)  # (batch_size, n_agents, args.attention_dim)
+        v = f.relu(self.v(h_out)).reshape(-1, self.args.n_agents,
+                                          self.args.attention_dim)  # (batch_size, n_agents, args.attention_dim)
         x = []
         for i in range(self.args.n_agents):
             q_i = q[:, i].view(-1, 1, self.args.attention_dim)  # agent i的q，(batch_size, 1, args.attention_dim)
@@ -112,4 +117,3 @@ class G2ANet(nn.Module):
         output = self.decoding(final_input)
 
         return output, h_out
-

@@ -80,7 +80,7 @@ class QtranAlt:
             else:
                 batch[key] = torch.tensor(batch[key], dtype=torch.float32)
         s, s_next, u, r, avail_u, avail_u_next, terminated = batch['s'], batch['s_next'], batch['u'], \
-                                                             batch['r'],  batch['avail_u'], batch['avail_u_next'],\
+                                                             batch['r'], batch['avail_u'], batch['avail_u_next'], \
                                                              batch['terminated']
         mask = 1 - batch["padded"].float().repeat(1, 1, self.n_agents)  # 用来把那些填充的经验的TD-error置0，从而不让它们影响到学习
         if self.args.cuda:
@@ -91,7 +91,8 @@ class QtranAlt:
             terminated = terminated.cuda()
             mask = mask.cuda()
         # 得到每个agent对应的Q和hidden_states，维度为(episode个数, max_episode_len， n_agents， n_actions/hidden_dim)
-        individual_q_evals, individual_q_targets, hidden_evals, hidden_targets = self._get_individual_q(batch, max_episode_len)
+        individual_q_evals, individual_q_targets, hidden_evals, hidden_targets = self._get_individual_q(batch,
+                                                                                                        max_episode_len)
 
         # 得到当前时刻和下一时刻每个agent的局部最优动作及其one_hot表示
         individual_q_clone = individual_q_evals.clone()
@@ -114,11 +115,13 @@ class QtranAlt:
         joint_q_evals, joint_q_targets, v = self.get_qtran(batch, opt_onehot_target, hidden_evals, hidden_targets)
 
         # 取出当前agent动作对应的joint_q_chosen以及它的局部最优动作对应的joint_q
-        joint_q_chosen = torch.gather(joint_q_evals, dim=-1, index=u).squeeze(-1)  # (episode个数, max_episode_len, n_agents)
+        joint_q_chosen = torch.gather(joint_q_evals, dim=-1, index=u).squeeze(
+            -1)  # (episode个数, max_episode_len, n_agents)
         joint_q_opt = torch.gather(joint_q_targets, dim=-1, index=opt_action_target).squeeze(-1)
 
         # loss
-        y_dqn = r.repeat(1, 1, self.n_agents) + self.args.gamma * joint_q_opt * (1 - terminated.repeat(1, 1, self.n_agents))
+        y_dqn = r.repeat(1, 1, self.n_agents) + self.args.gamma * joint_q_opt * (
+                    1 - terminated.repeat(1, 1, self.n_agents))
         td_error = joint_q_chosen - y_dqn.detach()
         l_td = ((td_error * mask) ** 2).sum() / mask.sum()
         # ---------------------------------------------L_td-------------------------------------------------------------
@@ -131,7 +134,8 @@ class QtranAlt:
 
         # 重新得到joint_q_opt_eval，它和joint_q_evals的区别是前者输入的动作是当前局部最优动作，后者输入的动作是当前执行的动作
         joint_q_opt_evals, _, _ = self.get_qtran(batch, opt_onehot_eval, hidden_evals, hidden_targets, hat=True)
-        joint_q_opt_evals = torch.gather(joint_q_opt_evals, dim=-1, index=opt_action_eval).squeeze(-1)  # (episode个数, max_episode_len， n_agents)
+        joint_q_opt_evals = torch.gather(joint_q_opt_evals, dim=-1, index=opt_action_eval).squeeze(
+            -1)  # (episode个数, max_episode_len， n_agents)
 
         # 因为QTRAN-alt要对每个agent都计算l_opt，所以要把q_sum_opt和v再增加一个agent维
         q_sum_opt = q_sum_opt.unsqueeze(-1).expand(-1, -1, self.n_agents)
@@ -294,6 +298,6 @@ class QtranAlt:
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
 
-        torch.save(self.eval_rnn.state_dict(),  self.model_dir + '/' + num + '_rnn_net_params.pkl')
+        torch.save(self.eval_rnn.state_dict(), self.model_dir + '/' + num + '_rnn_net_params.pkl')
         torch.save(self.eval_joint_q.state_dict(), self.model_dir + '/' + num + '_joint_q_params.pkl')
         torch.save(self.v.state_dict(), self.model_dir + '/' + num + '_v_params.pkl')

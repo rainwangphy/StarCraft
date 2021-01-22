@@ -49,12 +49,19 @@ def td_lambda_target(batch, max_episode_len, q_targets, args):
     n_step_return = torch.zeros((episode_num, max_episode_len, args.n_agents, max_episode_len))
     for transition_idx in range(max_episode_len - 1, -1, -1):
         # 最后计算1 step return
-        n_step_return[:, transition_idx, :, 0] = (r[:, transition_idx] + args.gamma * q_targets[:, transition_idx] * terminated[:, transition_idx]) * mask[:, transition_idx]        # 经验transition_idx上的obs有max_episode_len - transition_idx个return, 分别计算每种step return
+        n_step_return[:, transition_idx, :, 0] = (r[:, transition_idx] + args.gamma * q_targets[:,
+                                                                                      transition_idx] * terminated[:,
+                                                                                                        transition_idx]) * mask[
+                                                                                                                           :,
+                                                                                                                           transition_idx]  # 经验transition_idx上的obs有max_episode_len - transition_idx个return, 分别计算每种step return
         # 同时要注意n step return对应的index为n-1
         for n in range(1, max_episode_len - transition_idx):
             # t时刻的n step return =r + gamma * (t + 1 时刻的 n-1 step return)
             # n=1除外, 1 step return =r + gamma * (t + 1 时刻的 Q)
-            n_step_return[:, transition_idx, :, n] = (r[:, transition_idx] + args.gamma * n_step_return[:, transition_idx + 1, :, n - 1]) * mask[:, transition_idx]
+            n_step_return[:, transition_idx, :, n] = (r[:, transition_idx] + args.gamma * n_step_return[:,
+                                                                                          transition_idx + 1, :,
+                                                                                          n - 1]) * mask[:,
+                                                                                                    transition_idx]
     # --------------------------------------------------n_step_return---------------------------------------------------
 
     # --------------------------------------------------lambda return---------------------------------------------------

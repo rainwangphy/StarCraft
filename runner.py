@@ -16,7 +16,8 @@ class Runner:
         else:  # no communication agent
             self.agents = Agents(args)
             self.rolloutWorker = RolloutWorker(env, self.agents, args)
-        if not args.evaluate and args.alg.find('coma') == -1 and args.alg.find('central_v') == -1 and args.alg.find('reinforce') == -1:  # these 3 algorithms are on-poliy
+        if not args.evaluate and args.alg.find('coma') == -1 and args.alg.find('central_v') == -1 and args.alg.find(
+                'reinforce') == -1:  # these 3 algorithms are on-poliy
             self.buffer = ReplayBuffer(args)
         self.args = args
         self.win_rates = []
@@ -51,7 +52,8 @@ class Runner:
             for episode in episodes:
                 for key in episode_batch.keys():
                     episode_batch[key] = np.concatenate((episode_batch[key], episode[key]), axis=0)
-            if self.args.alg.find('coma') > -1 or self.args.alg.find('central_v') > -1 or self.args.alg.find('reinforce') > -1:
+            if self.args.alg.find('coma') > -1 or self.args.alg.find('central_v') > -1 or self.args.alg.find(
+                    'reinforce') > -1:
                 self.agents.train(episode_batch, train_steps, self.rolloutWorker.epsilon)
                 train_steps += 1
             else:
@@ -94,4 +96,3 @@ class Runner:
         np.save(self.save_path + '/win_rates_{}'.format(num), self.win_rates)
         np.save(self.save_path + '/episode_rewards_{}'.format(num), self.episode_rewards)
         plt.close()
-

@@ -28,10 +28,10 @@ class QMixNet(nn.Module):
         # hyper_w1得到的(经验条数，args.qmix_hidden_dim)矩阵需要同样维度的hyper_b1
         self.hyper_b1 = nn.Linear(args.state_shape, args.qmix_hidden_dim)
         # hyper_w2得到的(经验条数，1)的矩阵需要同样维度的hyper_b1
-        self.hyper_b2 =nn.Sequential(nn.Linear(args.state_shape, args.qmix_hidden_dim),
-                                     nn.ReLU(),
-                                     nn.Linear(args.qmix_hidden_dim, 1)
-                                     )
+        self.hyper_b2 = nn.Sequential(nn.Linear(args.state_shape, args.qmix_hidden_dim),
+                                      nn.ReLU(),
+                                      nn.Linear(args.qmix_hidden_dim, 1)
+                                      )
 
     def forward(self, q_values, states):  # states的shape为(episode_num, max_episode_len， state_shape)
         # 传入的q_values是三维的，shape为(episode_num, max_episode_len， n_agents)

@@ -37,7 +37,8 @@ class CommNet(nn.Module):
                 c = c.repeat(1, self.args.n_agents, 1)  # 此时每个agent都有了所有agent的h
                 # 把每个agent自己的h置0
                 mask = (1 - torch.eye(self.args.n_agents))  # th.eye（）生成一个二维对角矩阵
-                mask = mask.view(-1, 1).repeat(1, self.args.rnn_hidden_dim).view(self.args.n_agents, -1)  # (n_agents, n_agents * rnn_hidden_dim))
+                mask = mask.view(-1, 1).repeat(1, self.args.rnn_hidden_dim).view(self.args.n_agents,
+                                                                                 -1)  # (n_agents, n_agents * rnn_hidden_dim))
                 if self.args.cuda:
                     mask = mask.cuda()
                 c = c * mask.unsqueeze(0)
@@ -52,4 +53,3 @@ class CommNet(nn.Module):
         weights = self.decoding(h)
 
         return weights, h_out
-

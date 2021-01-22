@@ -42,7 +42,8 @@ class QtranQAlt(nn.Module):
 
         # 所有agent的hidden_encoding相加
         hidden_encoding = hidden_encoding.sum(dim=-2)  # (episode_num, max_episode_len, rnn_hidden_dim)
-        hidden_encoding = hidden_encoding.unsqueeze(-2).expand(-1, -1, n_agents, -1)  # (episode_num, max_episode_len, n_agents， rnn_hidden_dim)
+        hidden_encoding = hidden_encoding.unsqueeze(-2).expand(-1, -1, n_agents,
+                                                               -1)  # (episode_num, max_episode_len, n_agents， rnn_hidden_dim)
 
         # 对于每个agent，其他agent的action_encoding相加
         # 先让最后一维包含所有agent的动作
@@ -71,8 +72,8 @@ class QtranQBase(nn.Module):
         # action_encoding对输入的每个agent的hidden_state和动作进行编码，从而将所有agents的hidden_state和动作相加得到近似的联合hidden_state和动作
         ae_input = self.args.rnn_hidden_dim + self.args.n_actions
         self.hidden_action_encoding = nn.Sequential(nn.Linear(ae_input, ae_input),
-                                             nn.ReLU(),
-                                             nn.Linear(ae_input, ae_input))
+                                                    nn.ReLU(),
+                                                    nn.Linear(ae_input, ae_input))
 
         # 编码求和之后输入state、所有agent的hidden_state和动作之和
         q_input = self.args.state_shape + self.args.n_actions + self.args.rnn_hidden_dim
@@ -88,7 +89,8 @@ class QtranQBase(nn.Module):
         hidden_actions = torch.cat([hidden_states, actions], dim=-1)
         hidden_actions = hidden_actions.reshape(-1, self.args.rnn_hidden_dim + self.args.n_actions)
         hidden_actions_encoding = self.hidden_action_encoding(hidden_actions)
-        hidden_actions_encoding = hidden_actions_encoding.reshape(episode_num * max_episode_len, n_agents, -1)  # 变回n_agents维度用于求和
+        hidden_actions_encoding = hidden_actions_encoding.reshape(episode_num * max_episode_len, n_agents,
+                                                                  -1)  # 变回n_agents维度用于求和
         hidden_actions_encoding = hidden_actions_encoding.sum(dim=-2)
 
         inputs = torch.cat([state.reshape(episode_num * max_episode_len, -1), hidden_actions_encoding], dim=-1)

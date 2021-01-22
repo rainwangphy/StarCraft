@@ -93,7 +93,7 @@ class COMA:
                 batch[key] = torch.tensor(batch[key], dtype=torch.long)
             else:
                 batch[key] = torch.tensor(batch[key], dtype=torch.float32)
-        u, r, avail_u, terminated = batch['u'], batch['r'],  batch['avail_u'], batch['terminated']
+        u, r, avail_u, terminated = batch['u'], batch['r'], batch['avail_u'], batch['terminated']
         mask = (1 - batch["padded"].float()).repeat(1, 1, self.n_agents)  # 用来把那些填充的经验的TD-error置0，从而不让它们影响到学习
         if self.args.cuda:
             u = u.cuda()
@@ -106,7 +106,6 @@ class COMA:
         pi_taken = torch.gather(action_prob, dim=3, index=u).squeeze(3)  # 每个agent的选择的动作对应的概率
         pi_taken[mask == 0] = 1.0  # 因为要取对数，对于那些填充的经验，所有概率都为0，取了log就是负无穷了，所以让它们变成1
         log_pi_taken = torch.log(pi_taken)
-
 
         # 计算advantage
         baseline = (q_values * action_prob).sum(dim=3, keepdim=True).squeeze(3).detach()
@@ -126,7 +125,7 @@ class COMA:
 
     def _get_critic_inputs(self, batch, transition_idx, max_episode_len):
         # 取出所有episode上该transition_idx的经验
-        obs, obs_next, s, s_next = batch['o'][:, transition_idx], batch['o_next'][:, transition_idx],\
+        obs, obs_next, s, s_next = batch['o'][:, transition_idx], batch['o_next'][:, transition_idx], \
                                    batch['s'][:, transition_idx], batch['s_next'][:, transition_idx]
         u_onehot = batch['u_onehot'][:, transition_idx]
         if transition_idx != max_episode_len - 1:
@@ -238,7 +237,8 @@ class COMA:
             if self.args.cuda:
                 inputs = inputs.cuda()
                 self.eval_hidden = self.eval_hidden.cuda()
-            outputs, self.eval_hidden = self.eval_rnn(inputs, self.eval_hidden)  # inputs维度为(40,96)，得到的q_eval维度为(40,n_actions)
+            outputs, self.eval_hidden = self.eval_rnn(inputs,
+                                                      self.eval_hidden)  # inputs维度为(40,96)，得到的q_eval维度为(40,n_actions)
             # 把q_eval维度重新变回(8, 5,n_actions)
             outputs = outputs.view(episode_num, self.n_agents, -1)
             prob = torch.nn.functional.softmax(outputs, dim=-1)
@@ -247,7 +247,8 @@ class COMA:
         # 把该列表转化成(episode个数, max_episode_len， n_agents，n_actions)的数组
         action_prob = torch.stack(action_prob, dim=1).cpu()
 
-        action_num = avail_actions.sum(dim=-1, keepdim=True).float().repeat(1, 1, 1, avail_actions.shape[-1])   # 可以选择的动作的个数
+        action_num = avail_actions.sum(dim=-1, keepdim=True).float().repeat(1, 1, 1,
+                                                                            avail_actions.shape[-1])  # 可以选择的动作的个数
         action_prob = ((1 - epsilon) * action_prob + torch.ones_like(action_prob) * epsilon / action_num)
         action_prob[avail_actions == 0] = 0.0  # 不能执行的动作概率为0
 
@@ -304,4 +305,4 @@ class COMA:
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
         torch.save(self.eval_critic.state_dict(), self.model_dir + '/' + num + '_critic_params.pkl')
-        torch.save(self.eval_rnn.state_dict(),  self.model_dir + '/' + num + '_rnn_params.pkl')
+        torch.save(self.eval_rnn.state_dict(), self.model_dir + '/' + num + '_rnn_params.pkl')
